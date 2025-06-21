@@ -66,6 +66,10 @@ a:hover { text-decoration: none; }
     background: white url('../img/exit-fullscreen.svg') no-repeat center;
     background-size: 70%;
 }
+#search-menu-button {
+    background: white url('../img/search.svg') no-repeat center;
+    background-size: 60%;
+}
 #about {
     position: fixed;
     top: 44px;

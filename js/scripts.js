@@ -71,8 +71,11 @@ async function initMap() { // Initialize Google Map
         return canvasDrawImageOld.apply(this, arguments);
     };
     
+    const { Map } = await google.maps.importLibrary("maps");
     
-    map = new google.maps.Map(document.getElementById('map'), { // Define Map Settings
+    map = new Map(document.getElementById('map'), { // Define Map Settings
+        // A mapId is required for using Advanced Markers, so we just use the demo one:
+        mapId: "DEMO_MAP_ID",
         center: {
             lat: parseFloat(params.get('lat')) || 30,
             lng: parseFloat(params.get('lng')) || 0
@@ -184,7 +187,7 @@ async function initMap() { // Initialize Google Map
     event_fallback_locs = await getJsonData('data/event_fallback_locs.json');
 
     // Create team and event markers
-    for (team of teams) createTeamMarker(team);
+    for (team of teams) await createTeamMarker(team);
 
     var [events, err] = await getTBAQuery('/events/' + CURRENT_YEAR);
 
@@ -269,7 +272,7 @@ async function initMap() { // Initialize Google Map
                 coordList[event.lat][event.lng] = 0;
             }
 
-            createEventMarker(event);
+            await createEventMarker(event);
         }
     
         openURLKey(); // Show POST Argument Specified Marker
@@ -343,7 +346,8 @@ async function initMap() { // Initialize Google Map
     addKeyboardListener(); // Marker Toggling via Keyboard
 }
 
-function createEventMarker(event) { // Create an Event Marker on map
+async function createEventMarker(event) { // Create an Event Marker on map
+    const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
     var marker = new google.maps.Marker({
         position: {
             lat: event.lat,
@@ -368,7 +372,8 @@ function createEventMarker(event) { // Create an Event Marker on map
     markers.keys[event.key] = marker;
 }
 
-function createTeamMarker(team) { // Create a Team Marker on map
+async function createTeamMarker(team) { // Create a Team Marker on map
+    const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
     var position;
 
     if (team.team_number in locations) {
@@ -422,22 +427,29 @@ function createTeamMarker(team) { // Create a Team Marker on map
             image = 'logos/' + team.team_number + '.png'; // Defined
             scaledSize = new google.maps.Size(30, 30);
             size = undefined;
+            var originX = 0;
+            var originY = 0;
         }
     }
+    const SCALE_FACTOR = 0.75;
+    // The size of each FIRST avatar (before scaling) is 40x40
+    const AVATAR_SIZE = 40;
+    // Each sprite has a 2 pixel border between it and the next sprite
+    // so that when the whole sprite sheet is resized with scaledSize,
+    // the avatars do not bleed into each other around the edges
+    const AVATAR_BORDER = 2;
+    let newSheetSize = avatars.sheet_size * (AVATAR_SIZE + AVATAR_BORDER) * SCALE_FACTOR;
+    const glyphImgDiv = document.createElement('div');
+    glyphImgDiv.width = '30';
+    glyphImgDiv.height = '30';
+    // Crop the image specifically to the team
+    glyphImgDiv.style = `width: 30px; height: 30px; background: url(${image}) -${originX}px -${originY}px; background-size: ${newSheetSize}px ${newSheetSize}px`
 
-    var marker = new google.maps.Marker({
+    var marker = new google.maps.marker.AdvancedMarkerElement({
         position: position,
         map: map,
         title: team.team_number.toString(),
-        icon: {
-            url: image,
-            scaledSize: scaledSize,
-            size: size,
-            origin: origin
-        },
-        visible: state['team'], // Set starting visibility based on defined state
-        key: 'frc' + team.team_number,
-        type: 'team'
+        content: glyphImgDiv
     });
 
     google.maps.event.addListener(marker, 'click', function() {
@@ -661,8 +673,10 @@ function updateVisibleMarkers() {
         var visibility = state[marker.type] && 
                             (!markers.filtered || markers.filtered[marker.key] !== undefined);
         
-        if (marker.getVisible() !== visibility) {
-            marker.setVisible(visibility);
+        if (!marker.map && visibility) {
+            marker.map = map;
+        } else if (marker.map && !visibility) {
+            marker.map = null;
         }
     }
 }
@@ -909,3 +923,4 @@ function updateDOMLogoToggleState() { // Updates Logo Toggle Button text
 }
 
 updateDOMLogoToggleState(); // Update button text on page load
+initMap();

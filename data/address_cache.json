@@ -750,5 +750,17 @@
     "DR. REMZI KAZANCIGIL CD. NO:32, BAKIRK\u00d6Y / \u0130STANBUL, 34 34147, T\u00dcRKIYE": {
         "lat": 40.98936,
         "lng": 28.87121
+    },
+    "4380 VILLAGE WAY, LEAGUE CITY, TX 77546, USA": {
+        "lat": 29.5094707,
+        "lng": -95.024079
+    },
+    "HAMILTON HIGH SCHOOL, W220N6151 TOWN LINE RD, SUSSEX, WI, USA, SUSSEX, WI, USA": {
+        "lat": 43.1339,
+        "lng": -88.22204
+    },
+    "BETHPAGE HIGH SCHOOL, 10 CHERRY AVE, BETHPAGE, NY, USA, BETHPAGE, NY, USA": {
+        "lat": 40.7546749,
+        "lng": -73.4831671
     }
 }
